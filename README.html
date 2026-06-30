@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Maps Business Scraper — Documentation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #1F4E79;
+      --blue:      #2E75B6;
+      --blue-lt:   #D6E4F0;
+      --accent:    #1565C0;
+      --green:     #2E7D32;
+      --orange:    #E65100;
+      --red:       #C62828;
+      --bg:        #F5F7FA;
+      --surface:   #FFFFFF;
+      --border:    #DDE3EC;
+      --text:      #1A1A2E;
+      --muted:     #5A6480;
+      --code-bg:   #1E2233;
+      --code-fg:   #C9D1D9;
+      --tag-red:   #FFD7D7;
+      --tag-orange:#FFE5B4;
+      --tag-green: #D7FFD7;
+      --tag-grey:  #E8E8E8;
+      --radius:    8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar nav ─────────────────────────────────────── */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--navy);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 32px 0 40px;
+    }
+
+    .sidebar-logo {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 4px;
+    }
+    .sidebar-logo p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 500;
+    }
+
+    .nav-section {
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      padding: 8px 12px 4px;
+    }
+    .nav-section a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: background .15s, color .15s;
+    }
+    .nav-section a:hover,
+    .nav-section a.active {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .nav-section a .icon {
+      font-size: 15px;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Main content ────────────────────────────────────── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 56px 64px 96px;
+      max-width: 900px;
+    }
+
+    /* ── Hero ────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+      border-radius: 12px;
+      padding: 48px 48px 44px;
+      color: #fff;
+      margin-bottom: 56px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .hero p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.82);
+      max-width: 560px;
+      line-height: 1.65;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+    }
+    .hero-meta-item strong { color: #fff; }
+
+    /* ── Sections ────────────────────────────────────────── */
+    section {
+      margin-bottom: 64px;
+      scroll-margin-top: 32px;
+    }
+
+    h2.section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--blue-lt);
+    }
+    .section-intro {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 14.5px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 28px 0 10px;
+    }
+
+    p { margin-bottom: 12px; }
+
+    /* ── Cards ───────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    /* ── Step list ───────────────────────────────────────── */
+    .steps { list-style: none; }
+    .steps li {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body strong {
+      display: block;
+      font-size: 14.5px;
+      margin-bottom: 3px;
+      color: var(--text);
+    }
+    .step-body p {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ── Code blocks ─────────────────────────────────────── */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-fg);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+    }
+    code {
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 12.5px;
+      background: #E8EDF5;
+      color: #C62828;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* ── Info / warning / tip boxes ─────────────────────── */
+    .callout {
+      display: flex;
+      gap: 14px;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin: 16px 0;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout.info  { background: #EBF4FF; border-left: 4px solid var(--blue); }
+    .callout.warn  { background: #FFF8E1; border-left: 4px solid #F9A825; }
+    .callout.tip   { background: #E8F5E9; border-left: 4px solid var(--green); }
+    .callout p { margin: 0; }
+
+    /* ── Badge table ─────────────────────────────────────── */
+    .status-table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; }
+    .status-table th {
+      background: var(--navy);
+      color: #fff;
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+    .status-table td {
+      padding: 10px 14px;
+      font-size: 13.5px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .status-table tr:last-child td { border-bottom: none; }
+    .status-table tr:nth-child(even) td { background: #FAFBFD; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.red    { background: var(--tag-red);    color: #7B1A1A; }
+    .badge.orange { background: var(--tag-orange); color: #7B3900; }
+    .badge.green  { background: var(--tag-green);  color: #1B5E20; }
+    .badge.grey   { background: var(--tag-grey);   color: #444; }
+
+    /* ── Architecture diagram ────────────────────────────── */
+    .arch {
+      background: var(--code-bg);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 13px;
+      line-height: 1.9;
+      color: #8B949E;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+    }
+    .arch .hl  { color: #79C0FF; }
+    .arch .hl2 { color: #56D364; }
+    .arch .hl3 { color: #FFA657; }
+    .arch .dim { color: #484F58; }
+
+    /* ── Grid ────────────────────────────────────────────── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    /* ── File tree ───────────────────────────────────────── */
+    .file-tree {
+      background: var(--code-bg);
+      color: #8B949E;
+      border-radius: var(--radius);
+      padding: 22px 28px;
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 13px;
+      line-height: 2;
+    }
+    .file-tree .dir  { color: #79C0FF; }
+    .file-tree .file { color: #C9D1D9; }
+    .file-tree .note { color: #484F58; font-style: italic; }
+
+    /* ── Inline tag ──────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      background: var(--blue-lt);
+      color: var(--navy);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── Table ───────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; }
+    th {
+      background: var(--navy);
+      color: #fff;
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 12.5px;
+    }
+    td {
+      padding: 9px 14px;
+      font-size: 13.5px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #FAFBFD; }
+
+    /* ── Checklist ───────────────────────────────────────── */
+    .checklist { list-style: none; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 5px 0;
+      font-size: 14px;
+    }
+    .checklist li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { padding: 32px 24px 64px; }
+      .hero { padding: 32px 28px; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Documentation</h2>
+      <p>Google Maps Scraper</p>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Getting Started</div>
+      <a href="#overview"><span class="icon">&#128269;</span> Overview</a>
+      <a href="#installation"><span class="icon">&#128196;</span> Installation</a>
+      <a href="#quickstart"><span class="icon">&#9889;</span> Quick Start</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Using the App</div>
+      <a href="#interface"><span class="icon">&#128444;</span> Interface</a>
+      <a href="#filters"><span class="icon">&#127806;</span> Filter Options</a>
+      <a href="#results"><span class="icon">&#128202;</span> Reading Results</a>
+      <a href="#export"><span class="icon">&#128196;</span> Exporting to Excel</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">How It Works</div>
+      <a href="#scraping"><span class="icon">&#127758;</span> Maps Scraping</a>
+      <a href="#detection"><span class="icon">&#128337;</span> Website Age Detection</a>
+      <a href="#architecture"><span class="icon">&#9881;</span> Architecture</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Reference</div>
+      <a href="#files"><span class="icon">&#128193;</span> Project Files</a>
+      <a href="#tips"><span class="icon">&#128161;</span> Tips &amp; Troubleshooting</a>
+    </div>
+  </nav>
+
+  <!-- ── Main ───────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">User Guide</div>
+      <h1>Google Maps Business Scraper</h1>
+      <p>A desktop application that searches Google Maps for businesses with no web presence or an outdated website — and exports the results to a formatted Excel spreadsheet ready for outreach.</p>
+      <div class="hero-meta">
+        <div class="hero-meta-item"><strong>Python</strong> 3.10+</div>
+        <div class="hero-meta-item"><strong>Platform</strong> Windows</div>
+        <div class="hero-meta-item"><strong>Launch</strong> <code style="background:rgba(255,255,255,0.15);color:#fff;">pythonw launch.pyw</code></div>
+      </div>
+    </div>
+
+    <!-- ── Overview ───────────────────────────────────────── -->
+    <section id="overview">
+      <h2 class="section-title">Overview</h2>
+      <p class="section-intro">What the application does and why it is useful.</p>
+
+      <p>
+        The Google Maps Business Scraper is a lead-generation tool aimed at web designers and developers.
+        It automates the process of finding local businesses that either have <strong>no website at all</strong>
+        or have a website that was last active <strong>before a configurable year</strong> (default: 2010).
+        These businesses are prime candidates for a new website pitch.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">&#128269; What it finds</div>
+          Businesses on Google Maps within specified UK postcodes that have no web presence or an outdated one — automatically flagged and colour-coded for easy review.
+        </div>
+        <div class="card">
+          <div class="card-title">&#128196; What it produces</div>
+          A formatted <code>.xlsx</code> Excel file with business name, address, phone, website URL, detection method, rating, and postcode — with one-click hyperlinks and colour-coded rows.
+        </div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">&#8505;</span>
+        <p>The scraper uses a real Chromium browser behind the scenes — it behaves like a human browsing Google Maps, not a traditional web crawler. No API keys or paid subscriptions are required.</p>
+      </div>
+    </section>
+
+    <!-- ── Installation ───────────────────────────────────── -->
+    <section id="installation">
+      <h2 class="section-title">Installation</h2>
+      <p class="section-intro">One-time setup steps before first use.</p>
+
+      <div class="callout warn">
+        <span class="callout-icon">&#9888;</span>
+        <p>Python 3.10 or later is required. You can check your version by running <code>python --version</code> in a terminal.</p>
+      </div>
+
+      <ol class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Install Python dependencies</strong>
+            <p>Open a terminal in the project folder and run:</p>
+          </div>
+        </li>
+      </ol>
+      <pre><code>pip install -r requirements.txt</code></pre>
+
+      <ol class="steps" start="2">
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Install the Chromium browser</strong>
+            <p>Playwright needs to download a bundled Chromium. Run this once:</p>
+          </div>
+        </li>
+      </ol>
+      <pre><code>playwright install chromium</code></pre>
+
+      <ol class="steps" start="3">
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Launch the application</strong>
+            <p>Double-click <code>launch.pyw</code>, or run from a terminal:</p>
+          </div>
+        </li>
+      </ol>
+      <pre><code>python main.py</code></pre>
+
+      <h3>Dependencies at a glance</h3>
+      <table>
+        <tr><th>Package</th><th>Purpose</th></tr>
+        <tr><td><code>customtkinter</code></td><td>Modern themed GUI framework</td></tr>
+        <tr><td><code>playwright</code></td><td>Headless Chromium browser automation</td></tr>
+        <tr><td><code>python-whois</code></td><td>Domain registration date lookup</td></tr>
+        <tr><td><code>httpx</code></td><td>Async HTTP client for website checks</td></tr>
+        <tr><td><code>beautifulsoup4</code> + <code>lxml</code></td><td>HTML parsing for copyright year scan</td></tr>
+        <tr><td><code>openpyxl</code></td><td>Excel file creation and formatting</td></tr>
+      </table>
+    </section>
+
+    <!-- ── Quick Start ─────────────────────────────────────── -->
+    <section id="quickstart">
+      <h2 class="section-title">Quick Start</h2>
+      <p class="section-intro">Get your first results in under five minutes.</p>
+
+      <ol class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Open the application</strong>
+            <p>Double-click <code>launch.pyw</code>. The scraper window opens. No terminal window will appear.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Enter a postcode</strong>
+            <p>Type a UK postcode in the <em>Postcodes</em> box — for example <code>EC1A 1BB</code>. You can enter multiple postcodes separated by commas or new lines.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Choose your filters</strong>
+            <p>Tick <em>No website</em> to find businesses with no web presence, and/or <em>Outdated website</em> to flag sites that pre-date your chosen year threshold.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Click Start Scraping</strong>
+            <p>The progress bar activates and results populate the table in real time. Each row is colour-coded by status.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>Export to Excel</strong>
+            <p>When the scan finishes, the <em>Export to Excel</em> button activates. Click it and choose a save location. The file opens directly in Excel with full formatting applied.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ── Interface ───────────────────────────────────────── -->
+    <section id="interface">
+      <h2 class="section-title">Application Interface</h2>
+      <p class="section-intro">A breakdown of every part of the application window.</p>
+
+      <div class="arch">
+<span class="hl">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="hl">│  Google Maps Business Scraper                                       │</span>
+<span class="hl">├────────────────────┬────────────────────────────────────────────────┤</span>
+<span class="hl2">│  Search Filters    │</span><span class="hl3">  #  │ Name │ Address │ Phone │ Website │ ...  │</span>
+<span class="dim">│                    │─────┼──────┼─────────┼───────┼─────────┼──────│</span>
+<span class="dim">│  Postcodes         │  1  │ ...  │ ...     │ ...   │         │      │  ← red row</span>
+<span class="dim">│  [_____________]   │  2  │ ...  │ ...     │ ...   │ bob.co  │      │  ← orange</span>
+<span class="dim">│                    │  3  │ ...  │ ...     │ ...   │ new.com │      │  ← green</span>
+<span class="dim">│  [ ] No website    │                                                 │</span>
+<span class="dim">│  [ ] Outdated      │                                                 │</span>
+<span class="dim">│  Before: [2010]    │                                                 │</span>
+<span class="dim">│  Max: [20]         │                                                 │</span>
+<span class="hl">│                    ├─────────────────────────────────────────────────┤</span>
+<span class="hl">│  [START]  [STOP]   │  ████████░░░░  Searching SW1A 1AA (1/3)...     │</span>
+<span class="hl">│  [CLEAR]           │                            [Export to Excel]    │</span>
+<span class="hl">└────────────────────┴─────────────────────────────────────────────────┘</span>
+      </div>
+
+      <h3>Left sidebar — Search Filters</h3>
+      <table>
+        <tr><th>Control</th><th>Description</th></tr>
+        <tr><td><strong>Postcodes</strong></td><td>Enter one or more UK postcodes. Separate multiple entries with commas or new lines. All postcodes are automatically uppercased and deduplicated.</td></tr>
+        <tr><td><strong>No website</strong> checkbox</td><td>When ticked, includes businesses that have no website listed on Google Maps.</td></tr>
+        <tr><td><strong>Outdated website</strong> checkbox</td><td>When ticked, includes businesses whose website shows evidence of being created or last updated before the threshold year.</td></tr>
+        <tr><td><strong>Outdated before</strong></td><td>The year cutoff for the "outdated" check. Defaults to 2010. Any integer can be entered.</td></tr>
+        <tr><td><strong>Max results / postcode</strong></td><td>Limits how many businesses are fetched from Google Maps per postcode. Defaults to 20. Setting a higher number increases run time.</td></tr>
+        <tr><td><strong>Start Scraping</strong></td><td>Begins the scrape. All controls are disabled while running.</td></tr>
+        <tr><td><strong>Stop</strong></td><td>Signals the scraper to stop cleanly after the current business finishes. Already-found results are kept.</td></tr>
+        <tr><td><strong>Clear</strong></td><td>Clears the results table and resets the progress bar. Only active when not scraping.</td></tr>
+      </table>
+
+      <h3>Results table</h3>
+      <p>The table populates in real time as each business is processed. Column headers can be <strong>clicked to sort</strong> (ascending/descending). Columns can be <strong>dragged to resize</strong>. A horizontal scrollbar appears when columns overflow the visible area.</p>
+    </section>
+
+    <!-- ── Filters ─────────────────────────────────────────── -->
+    <section id="filters">
+      <h2 class="section-title">Filter Options</h2>
+      <p class="section-intro">Understanding what each filter does and when to use it.</p>
+
+      <div class="card">
+        <div class="card-title">&#128683; No website</div>
+        Businesses are included if Google Maps shows no website link in their listing. This is the most straightforward filter — the business has no web presence at all and is an obvious outreach candidate.
+      </div>
+
+      <div class="card">
+        <div class="card-title">&#128337; Outdated website</div>
+        Businesses are included if the scraper determines their website was created or last significantly updated before the <em>Outdated before</em> year. Evidence for this comes from the website age detection chain (see <a href="#detection">Website Age Detection</a>). A business with a website from 2006 would likely benefit from a modern redesign.
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#128161;</span>
+        <p>Both filters can be active at the same time. The results table will contain both "No Website" and "Outdated" rows. Businesses whose website appears modern (post-threshold) are silently excluded and never shown.</p>
+      </div>
+
+      <h3>Choosing the right threshold year</h3>
+      <p>The default of <strong>2010</strong> targets websites that are 15+ years old — typically built before responsive design, mobile-first layouts, and modern security standards became standard practice. You can raise this (e.g. to 2016) to catch more businesses, at the cost of occasionally flagging sites that are functional but not cutting-edge.</p>
+    </section>
+
+    <!-- ── Results ─────────────────────────────────────────── -->
+    <section id="results">
+      <h2 class="section-title">Reading the Results</h2>
+      <p class="section-intro">What each column means and how to interpret the colour coding.</p>
+
+      <h3>Row colour coding</h3>
+      <table class="status-table">
+        <tr>
+          <th>Colour</th>
+          <th>Status</th>
+          <th>Meaning</th>
+        </tr>
+        <tr>
+          <td><span class="badge red">No Website</span></td>
+          <td>No Website</td>
+          <td>No website URL is present on the Google Maps listing. The business has no detectable web presence.</td>
+        </tr>
+        <tr>
+          <td><span class="badge orange">Outdated</span></td>
+          <td>Outdated</td>
+          <td>A website was found but evidence suggests it was created or active before the threshold year.</td>
+        </tr>
+        <tr>
+          <td><span class="badge green">OK</span></td>
+          <td>OK</td>
+          <td>The website appears to be modern. These rows are filtered out by default and will only appear if both filter checkboxes are unticked.</td>
+        </tr>
+        <tr>
+          <td><span class="badge grey">Unknown</span></td>
+          <td>Unknown</td>
+          <td>A website URL was found but no reliable age signal could be determined (domain privacy, no archive, no copyright year, no HTTP headers).</td>
+        </tr>
+      </table>
+
+      <h3>Column reference</h3>
+      <table>
+        <tr><th>Column</th><th>Description</th></tr>
+        <tr><td><strong>#</strong></td><td>Row number in the order results were found.</td></tr>
+        <tr><td><strong>Business Name</strong></td><td>The name as listed on Google Maps.</td></tr>
+        <tr><td><strong>Address</strong></td><td>The full street address from the Google Maps listing.</td></tr>
+        <tr><td><strong>Phone</strong></td><td>Phone number extracted from the listing, if present.</td></tr>
+        <tr><td><strong>Website</strong></td><td>The website URL from the listing. Clickable hyperlink in the exported Excel file.</td></tr>
+        <tr><td><strong>Status</strong></td><td>No Website / Outdated / OK / Unknown — matches the row colour.</td></tr>
+        <tr><td><strong>Last Evidence</strong></td><td>The date or year used as evidence for the age classification (e.g. domain registration date, earliest archive snapshot, copyright year found in HTML).</td></tr>
+        <tr><td><strong>Detection Method</strong></td><td>Which step in the detection chain produced the result: WHOIS, Wayback Machine, HTML copyright, or Last-Modified header.</td></tr>
+        <tr><td><strong>Rating</strong></td><td>The Google Maps star rating, if shown.</td></tr>
+        <tr><td><strong>Postcode</strong></td><td>Which postcode search produced this result.</td></tr>
+      </table>
+
+      <div class="callout info">
+        <span class="callout-icon">&#8505;</span>
+        <p>Clicking any column header sorts the table by that column. Clicking again reverses the sort direction. An arrow indicator (↑ / ↓) shows the active sort column.</p>
+      </div>
+    </section>
+
+    <!-- ── Export ─────────────────────────────────────────── -->
+    <section id="export">
+      <h2 class="section-title">Exporting to Excel</h2>
+      <p class="section-intro">Generating a professional, ready-to-use spreadsheet.</p>
+
+      <p>
+        Once a scrape completes, click <strong>Export to Excel</strong> in the bottom-right corner.
+        A save dialog appears. Choose a filename and location; the file is saved as <code>.xlsx</code>.
+      </p>
+
+      <h3>Spreadsheet layout</h3>
+      <p>The exported file contains a single sheet named <em>Results</em> with the following structure:</p>
+
+      <table>
+        <tr><th>Row(s)</th><th>Content</th></tr>
+        <tr><td>Row 1</td><td>Title bar — "Google Maps Business Scraper — Results" on a navy background.</td></tr>
+        <tr><td>Row 2</td><td>Generated timestamp and total result count on a pale blue background.</td></tr>
+        <tr><td>Row 3</td><td>Empty spacer row.</td></tr>
+        <tr><td>Row 4</td><td>Column headers on a medium blue background. Auto-filter dropdowns are enabled on every column. This row is frozen — it stays visible while scrolling down.</td></tr>
+        <tr><td>Row 5+</td><td>Data rows with colour-coded backgrounds matching the in-app table. Website URLs are formatted as clickable hyperlinks.</td></tr>
+      </table>
+
+      <ul class="checklist">
+        <li>Row 4 and above stay frozen when scrolling</li>
+        <li>Auto-filter on every column (filter by postcode, status, etc. directly in Excel)</li>
+        <li>Website URLs are clickable hyperlinks</li>
+        <li>Row colours match the in-app colour coding</li>
+        <li>All data cells have borders for a clean, printable layout</li>
+      </ul>
+    </section>
+
+    <!-- ── Scraping ────────────────────────────────────────── -->
+    <section id="scraping">
+      <h2 class="section-title">How Maps Scraping Works</h2>
+      <p class="section-intro">A detailed look at how the application extracts business data from Google Maps.</p>
+
+      <h3>The search approach</h3>
+      <p>
+        For each postcode the scraper navigates to:
+      </p>
+      <pre><code>https://www.google.com/maps/search/businesses+in+{POSTCODE}</code></pre>
+      <p>
+        A real headless Chromium browser is used so that JavaScript renders fully and Google Maps behaves as it would for a human visitor. The browser is launched with bot-detection countermeasures applied.
+      </p>
+
+      <h3>Step-by-step scraping flow</h3>
+      <ol class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Consent handling</strong>
+            <p>On first launch, Google may show a consent page (common in the UK). The scraper automatically clicks "Accept all" and waits for Maps to load.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Results detection</strong>
+            <p>The scraper checks whether the page shows a list of results or a single business. If the URL immediately contains <code>/maps/place/</code>, it processes that one business directly.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Scrolling the results list</strong>
+            <p>The scrollable feed (<code>div[role="feed"]</code>) is scrolled progressively. After each scroll, the scraper waits for new listing cards to appear before scrolling again — up to 20 scroll rounds — collecting all listing URLs up to the configured maximum.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Parallel place visits</strong>
+            <p>Up to 3 business pages are visited simultaneously. Each page navigates to the place detail URL and extracts: name, address, phone number, website URL, and rating. Concurrent visits reduce total run time by roughly 3×.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>Website age checks</strong>
+            <p>All extracted website URLs for a postcode are checked concurrently (see <a href="#detection">Website Age Detection</a>). Businesses that match the active filter(s) are emitted to the results table in real time.</p>
+          </div>
+        </li>
+      </ol>
+
+      <h3>Rate limiting &amp; anti-detection</h3>
+      <p>To avoid triggering Google's bot protection:</p>
+      <ul class="checklist">
+        <li>Random delays between 0.6–1.2 s between individual place page visits</li>
+        <li>Random delays between 1.5–3.0 s between different postcodes</li>
+        <li>The <code>navigator.webdriver</code> property is hidden from the page</li>
+        <li>A realistic Chrome user-agent string is used</li>
+        <li>If a CAPTCHA page is detected, the scraper pauses for 30 seconds and retries once</li>
+      </ul>
+
+      <div class="callout warn">
+        <span class="callout-icon">&#9888;</span>
+        <p>Google Maps does not have a public API for bulk business data. Excessive scraping at high volumes or very high speed may trigger temporary blocks. The built-in rate limiting is designed to keep usage at a normal human-browsing pace.</p>
+      </div>
+    </section>
+
+    <!-- ── Detection ──────────────────────────────────────── -->
+    <section id="detection">
+      <h2 class="section-title">Website Age Detection</h2>
+      <p class="section-intro">How the scraper determines whether a website is outdated, and in what order the checks run.</p>
+
+      <p>
+        When a business has a website URL, four checks are attempted in a specific order. The
+        first check to return a conclusive result wins — the remaining checks are cancelled to
+        save time. Results for each unique domain are cached for the lifetime of a scrape run,
+        so franchise chains are only checked once.
+      </p>
+
+      <h3>Detection chain</h3>
+
+      <div class="card">
+        <div class="card-title">&#9312; WHOIS + Wayback Machine <span class="tag">Raced concurrently</span></div>
+        <p style="margin-top:8px;margin-bottom:0;font-size:13.5px;">
+          Both checks run simultaneously. Whichever finishes first with a conclusive result is used.
+        </p>
+        <br/>
+        <p style="margin-bottom:0;font-size:13.5px;">
+          <strong>WHOIS</strong> — queries the domain registrar database for the domain's registration date.
+          This is the most reliable signal: a domain registered in 2004 almost certainly means the website
+          has been around since at least 2004.
+        </p>
+        <br/>
+        <p style="margin-bottom:0;font-size:13.5px;">
+          <strong>Wayback Machine (Archive.org CDX API)</strong> — queries the Internet Archive for the
+          earliest successful snapshot of the domain. A site first archived in 2007 is classified as outdated.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">&#9313; HTML Copyright Year Scan <span class="tag">Fallback</span></div>
+        <p style="margin-top:8px;margin-bottom:0;font-size:13.5px;">
+          The homepage is fetched and parsed. The scraper searches the page footer, copyright meta tags,
+          and full page text for patterns like <code>© 2006</code>, <code>Copyright 2008</code>,
+          or <code>(c) 2003</code>. The earliest year found is used for classification.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">&#9314; HTTP <code>Last-Modified</code> Header <span class="tag">Fallback</span></div>
+        <p style="margin-top:8px;margin-bottom:0;font-size:13.5px;">
+          A HEAD request is sent first (no page download needed). If the server responds with a
+          <code>Last-Modified</code> header, the date is parsed and compared to the threshold year.
+          If the header is absent or ambiguous, a full GET request and HTML scan follows.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">&#10067; Unknown <span class="tag">Final fallback</span></div>
+        <p style="margin-top:8px;margin-bottom:0;font-size:13.5px;">
+          If all four methods fail to produce a date (domain uses WHOIS privacy, no archive exists,
+          no copyright year in HTML, no HTTP headers), the website is classified as <em>Unknown</em>.
+          These rows appear in light grey in the table and export.
+        </p>
+      </div>
+
+      <h3>Classification logic</h3>
+      <table>
+        <tr><th>Evidence date</th><th>Result</th></tr>
+        <tr><td>Date &lt; threshold year (e.g. before 2010)</td><td><span class="badge orange">Outdated</span></td></tr>
+        <tr><td>Date ≥ threshold year</td><td><span class="badge green">OK</span> (excluded from results)</td></tr>
+        <tr><td>No website URL on Google Maps</td><td><span class="badge red">No Website</span></td></tr>
+        <tr><td>Website found but no date signal</td><td><span class="badge grey">Unknown</span></td></tr>
+      </table>
+    </section>
+
+    <!-- ── Architecture ───────────────────────────────────── -->
+    <section id="architecture">
+      <h2 class="section-title">Architecture</h2>
+      <p class="section-intro">How the components fit together under the hood.</p>
+
+      <p>
+        The application follows a <strong>producer–consumer</strong> pattern. A background thread
+        runs an <code>asyncio</code> event loop that drives Playwright and HTTP requests. The GUI
+        (tkinter) runs on the main thread and is never blocked. A <code>queue.Queue</code> bridges
+        the two threads safely.
+      </p>
+
+      <div class="arch">
+<span class="hl">MAIN THREAD (tkinter / GUI)</span>          <span class="hl2">SCRAPER THREAD (asyncio event loop)</span>
+<span class="dim">───────────────────────────────</span>          <span class="dim">─────────────────────────────────────</span>
+<span class="hl3">MainWindow.start_scraping()</span>
+  → creates queue.Queue()
+  → creates threading.Event()              <span class="hl2">_run_scraper_thread()</span>
+  → Thread(daemon=True).start()  ───────►   → asyncio.run(_async_scrape_entry())
+  → after(100ms, _poll_queue)                    → MapsScraper.scrape()
+                                                      → for each postcode:
+<span class="hl3">_poll_queue() [every 100 ms]</span>                            → scroll + collect URLs
+  → queue.get_nowait() loop                          → visit 3 places in parallel
+  → dispatch by msg["type"]:                         → check websites concurrently
+      "result"   → add row to table       ◄──────       → queue.put({"type":"result"})
+      "status"   → update status label   ◄──────       → queue.put({"type":"status"})
+      "progress" → update progress bar   ◄──────       → queue.put({"type":"progress"})
+      "done"     → re-enable controls    ◄──────   → queue.put({"type":"done"})  ← always
+</div>
+
+      <div class="callout info">
+        <span class="callout-icon">&#8505;</span>
+        <p>The scraper thread is a <em>daemon thread</em> — it is automatically killed when the main window closes, preventing zombie browser processes. The Stop button sets a <code>threading.Event</code> that the scraper checks at each iteration for a clean shutdown.</p>
+      </div>
+    </section>
+
+    <!-- ── Project Files ──────────────────────────────────── -->
+    <section id="files">
+      <h2 class="section-title">Project Files</h2>
+      <p class="section-intro">What each file does.</p>
+
+      <div class="file-tree">
+<span class="dir">Google_Maps_Scraper/</span>
+├── <span class="file">launch.pyw</span>          <span class="note">← double-click to open app (no console window)</span>
+├── <span class="file">main.py</span>              <span class="note">← entry point (run from terminal for debug output)</span>
+├── <span class="file">requirements.txt</span>     <span class="note">← Python dependencies</span>
+├── <span class="file">README.html</span>          <span class="note">← this file</span>
+│
+├── <span class="dir">gui/</span>
+│   ├── <span class="file">main_window.py</span>   <span class="note">← root window; owns queue, thread, export</span>
+│   ├── <span class="file">filter_panel.py</span>  <span class="note">← left sidebar with all inputs and buttons</span>
+│   └── <span class="file">results_table.py</span> <span class="note">← colour-coded sortable Treeview table</span>
+│
+├── <span class="dir">scraper/</span>
+│   ├── <span class="file">maps_scraper.py</span>  <span class="note">← Playwright Google Maps scraping logic</span>
+│   └── <span class="file">website_checker.py</span><span class="note">← WHOIS / Wayback / HTML / headers detection</span>
+│
+└── <span class="dir">exporter/</span>
+    └── <span class="file">excel_exporter.py</span><span class="note">← openpyxl Excel file creation and formatting</span>
+      </div>
+    </section>
+
+    <!-- ── Tips ───────────────────────────────────────────── -->
+    <section id="tips">
+      <h2 class="section-title">Tips &amp; Troubleshooting</h2>
+      <p class="section-intro">Common questions and ways to get the best results.</p>
+
+      <h3>Getting more results</h3>
+      <ul class="checklist">
+        <li>Increase <em>Max results / postcode</em> to 50 or more for dense urban areas</li>
+        <li>Run multiple adjacent postcodes together — enter them comma-separated</li>
+        <li>The <em>Unknown</em> status rows are still worth exporting; many have no website even if the detection chain couldn't confirm the date</li>
+      </ul>
+
+      <h3>The scrape is slow</h3>
+      <ul class="checklist">
+        <li>Website checks (especially WHOIS and Wayback Machine) depend on external servers — slowness is often network latency, not the app itself</li>
+        <li>Each postcode requires the browser to scroll and visit multiple pages; 20 results typically takes 1–3 minutes</li>
+        <li>Avoid running with very high <em>Max results</em> values on many postcodes simultaneously</li>
+      </ul>
+
+      <h3>The app found no results for a postcode</h3>
+      <ul class="checklist">
+        <li>Google Maps returns very localised results — a postcode with few businesses will naturally return fewer listings</li>
+        <li>Try a neighbouring or broader postcode (e.g. <code>EC1A</code> instead of <code>EC1A 1BB</code>)</li>
+        <li>If the status bar says "No results for [postcode], skipping" — Google Maps genuinely returned nothing for that search</li>
+      </ul>
+
+      <h3>Results show "Unknown" for many businesses</h3>
+      <ul class="checklist">
+        <li>Many small business websites use domain privacy (WHOIS hidden), have never been archived, have no copyright notice, and omit HTTP headers — all four checks can legitimately fail</li>
+        <li><em>Unknown</em> does NOT mean the website is modern. It simply means the age could not be determined automatically</li>
+        <li>Consider manually spot-checking <em>Unknown</em> rows in the export before outreach</li>
+      </ul>
+
+      <h3>CAPTCHA warning appears in the status bar</h3>
+      <p>
+        If Google detects automated browsing, it may serve a CAPTCHA page. The scraper detects this,
+        pauses for 30 seconds, and retries once. If the problem persists, stop the scrape, wait a few
+        minutes, then try again with a smaller <em>Max results</em> value or fewer postcodes per run.
+      </p>
+
+      <div class="callout tip">
+        <span class="callout-icon">&#128161;</span>
+        <p>Running <code>python main.py</code> from a terminal (instead of <code>launch.pyw</code>) will show a console window with real-time debug output — useful for diagnosing unexpected behaviour.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>
