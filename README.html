@@ -105,12 +105,6 @@
       background: rgba(255,255,255,0.1);
       color: #fff;
     }
-    .nav-section a .icon {
-      font-size: 15px;
-      width: 18px;
-      text-align: center;
-      flex-shrink: 0;
-    }
 
     /* ── Main content ────────────────────────────────────── */
     .main {
@@ -424,30 +418,29 @@
 
     <div class="nav-section">
       <div class="nav-section-label">Getting Started</div>
-      <a href="#overview"><span class="icon">&#128269;</span> Overview</a>
-      <a href="#installation"><span class="icon">&#128196;</span> Installation</a>
-      <a href="#quickstart"><span class="icon">&#9889;</span> Quick Start</a>
+      <a href="#overview">Overview</a>
+      <a href="#installation">Installation</a>
+      <a href="#quickstart">Quick Start</a>
     </div>
 
     <div class="nav-section">
       <div class="nav-section-label">Using the App</div>
-      <a href="#interface"><span class="icon">&#128444;</span> Interface</a>
-      <a href="#filters"><span class="icon">&#127806;</span> Filter Options</a>
-      <a href="#results"><span class="icon">&#128202;</span> Reading Results</a>
-      <a href="#export"><span class="icon">&#128196;</span> Exporting to Excel</a>
+      <a href="#interface">Interface</a>
+      <a href="#filters">Filter Options</a>
+      <a href="#results">Reading Results</a>
+      <a href="#export">Exporting to Excel</a>
     </div>
 
     <div class="nav-section">
       <div class="nav-section-label">How It Works</div>
-      <a href="#scraping"><span class="icon">&#127758;</span> Maps Scraping</a>
-      <a href="#detection"><span class="icon">&#128337;</span> Website Age Detection</a>
-      <a href="#architecture"><span class="icon">&#9881;</span> Architecture</a>
+      <a href="#scraping">Maps Scraping</a>
+      <a href="#detection">Website Age Detection</a>
+      <a href="#architecture">Architecture</a>
     </div>
 
     <div class="nav-section">
       <div class="nav-section-label">Reference</div>
-      <a href="#files"><span class="icon">&#128193;</span> Project Files</a>
-      <a href="#tips"><span class="icon">&#128161;</span> Tips &amp; Troubleshooting</a>
+      <a href="#tips">Tips &amp; Troubleshooting</a>
     </div>
   </nav>
 
@@ -598,25 +591,6 @@
     <section id="interface">
       <h2 class="section-title">Application Interface</h2>
       <p class="section-intro">A breakdown of every part of the application window.</p>
-
-      <div class="arch">
-<span class="hl">┌─────────────────────────────────────────────────────────────────────┐</span>
-<span class="hl">│  Google Maps Business Scraper                                       │</span>
-<span class="hl">├────────────────────┬────────────────────────────────────────────────┤</span>
-<span class="hl2">│  Search Filters    │</span><span class="hl3">  #  │ Name │ Address │ Phone │ Website │ ...  │</span>
-<span class="dim">│                    │─────┼──────┼─────────┼───────┼─────────┼──────│</span>
-<span class="dim">│  Postcodes         │  1  │ ...  │ ...     │ ...   │         │      │  ← red row</span>
-<span class="dim">│  [_____________]   │  2  │ ...  │ ...     │ ...   │ bob.co  │      │  ← orange</span>
-<span class="dim">│                    │  3  │ ...  │ ...     │ ...   │ new.com │      │  ← green</span>
-<span class="dim">│  [ ] No website    │                                                 │</span>
-<span class="dim">│  [ ] Outdated      │                                                 │</span>
-<span class="dim">│  Before: [2010]    │                                                 │</span>
-<span class="dim">│  Max: [20]         │                                                 │</span>
-<span class="hl">│                    ├─────────────────────────────────────────────────┤</span>
-<span class="hl">│  [START]  [STOP]   │  ████████░░░░  Searching SW1A 1AA (1/3)...     │</span>
-<span class="hl">│  [CLEAR]           │                            [Export to Excel]    │</span>
-<span class="hl">└────────────────────┴─────────────────────────────────────────────────┘</span>
-      </div>
 
       <h3>Left sidebar — Search Filters</h3>
       <table>
@@ -916,32 +890,6 @@
       <div class="callout info">
         <span class="callout-icon">&#8505;</span>
         <p>The scraper thread is a <em>daemon thread</em> — it is automatically killed when the main window closes, preventing zombie browser processes. The Stop button sets a <code>threading.Event</code> that the scraper checks at each iteration for a clean shutdown.</p>
-      </div>
-    </section>
-
-    <!-- ── Project Files ──────────────────────────────────── -->
-    <section id="files">
-      <h2 class="section-title">Project Files</h2>
-      <p class="section-intro">What each file does.</p>
-
-      <div class="file-tree">
-<span class="dir">Google_Maps_Scraper/</span>
-├── <span class="file">launch.pyw</span>          <span class="note">← double-click to open app (no console window)</span>
-├── <span class="file">main.py</span>              <span class="note">← entry point (run from terminal for debug output)</span>
-├── <span class="file">requirements.txt</span>     <span class="note">← Python dependencies</span>
-├── <span class="file">README.html</span>          <span class="note">← this file</span>
-│
-├── <span class="dir">gui/</span>
-│   ├── <span class="file">main_window.py</span>   <span class="note">← root window; owns queue, thread, export</span>
-│   ├── <span class="file">filter_panel.py</span>  <span class="note">← left sidebar with all inputs and buttons</span>
-│   └── <span class="file">results_table.py</span> <span class="note">← colour-coded sortable Treeview table</span>
-│
-├── <span class="dir">scraper/</span>
-│   ├── <span class="file">maps_scraper.py</span>  <span class="note">← Playwright Google Maps scraping logic</span>
-│   └── <span class="file">website_checker.py</span><span class="note">← WHOIS / Wayback / HTML / headers detection</span>
-│
-└── <span class="dir">exporter/</span>
-    └── <span class="file">excel_exporter.py</span><span class="note">← openpyxl Excel file creation and formatting</span>
       </div>
     </section>
 
